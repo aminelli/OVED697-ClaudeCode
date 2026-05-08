@@ -1,0 +1,27 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Read(pr-diffs/**)",
+      "Read(agents/**)",
+      "Read(skills/**)",
+      "Read(artifacts/**)",
+      "Write(artifacts/comments/**)",
+      "Write(artifacts/reports/**)",
+      "Write(artifacts/manifests/**)"
+    ],
+    "deny": [
+      "Write(pr-diffs/**)",
+      "Write(agents/**)",
+      "Write(skills/**)",
+      "Bash(git push:*)",
+      "Bash(curl:*)"
+    ]
+  },
+  "env": {
+    "ARTIFACT_REGISTRY": "artifacts/manifests/artifact-registry.json",
+    "COMMENTS_DIR": "artifacts/comments",
+    "REPORTS_DIR": "artifacts/reports",
+    "PR_DIFFS_DIR": "pr-diffs"
+  }
+}

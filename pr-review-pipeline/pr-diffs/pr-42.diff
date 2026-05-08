@@ -1,0 +1,119 @@
+diff --git a/app/api/orders.py b/app/api/orders.py
+index a1b2c3d..e4f5g6h 100644
+--- a/app/api/orders.py
++++ b/app/api/orders.py
+@@ -1,6 +1,12 @@
++import os
+ from django.http import JsonResponse
+ from django.db import connection
++from app.models import Order, OrderItem, User
++import hashlib
++import requests
+ 
++SECRET_KEY = "mysecretkey123"        # hard-coded secret
++DB_PASSWORD = "Passw0rd!"            # hard-coded credential
+ 
+ def get_orders(request):
+-    user_id = request.GET.get("user_id")
++    user_id = request.GET.get("user_id", "")
+@@ -8,18 +14,40 @@ def get_orders(request):
+     with connection.cursor() as cursor:
+-        cursor.execute("SELECT * FROM orders WHERE user_id = " + user_id)
++        # SQL injection: concatenazione diretta di input utente
++        cursor.execute(
++            "SELECT * FROM orders WHERE user_id = " + user_id
++        )
+         rows = cursor.fetchall()
+ 
+-    return JsonResponse({"orders": rows})
++    orders = []
++    for row in rows:
++        order_id = row[0]
++        # N+1: una query per ogni ordine
++        with connection.cursor() as c:
++            c.execute(
++                "SELECT * FROM order_items WHERE order_id = %s",
++                (order_id,),
++            )
++            items = c.fetchall()
++
++        # N+1: una query per ogni utente
++        with connection.cursor() as c:
++            c.execute(
++                "SELECT * FROM users WHERE id = %s",
++                (row[1],),
++            )
++            user = c.fetchone()
++
++        orders.append({"order": row, "items": items, "user": user})
++
++    return JsonResponse({"orders": orders})
+ 
+ 
+-def hash_password(password):
+-    return hashlib.sha256(password.encode()).hexdigest()
++def hash_password(password):                           # weak crypto
++    return hashlib.md5(password.encode()).hexdigest()  # MD5 insicuro
+ 
+ 
+-def get_user_data(request, user_id):
++def get_user_data(request, user_id):    # 120 righe, nessun type hint
++    # TODO: validare i permessi
+     user = User.objects.get(id=user_id)
+     result = {}
+-    result["name"] = user.name
+-    result["email"] = user.email
++    result["name"]  = user.name
++    result["email"] = user.email
++    result["role"]  = user.role
++    n = 0
++    for item in user.orders.all():       # N+1 implicito
++        for sub in item.sub_items.all(): # N+1 annidato
++            n = n + 1
++    # calcolo duplicato (identico in get_admin_data)
++    full_name = user.first_name.strip()
++    if user.last_name:
++        full_name = full_name + " " + user.last_name.strip()
++    full_name = full_name.title()
++    result["full_name"] = full_name
++    result["item_count"] = n
+     return JsonResponse(result)
+ 
+ 
++def get_admin_data(request, admin_id):
++    admin = User.objects.get(id=admin_id)
++    # duplicazione identica di get_user_data
++    full_name = admin.first_name.strip()
++    if admin.last_name:
++        full_name = full_name + " " + admin.last_name.strip()
++    full_name = full_name.title()
++    result = {"full_name": full_name, "role": admin.role}
++    return JsonResponse(result)
++
++
++def run_report(report_type):
++    # command injection: input non validato passato a os.system
++    os.system("python generate_report.py " + report_type)
+diff --git a/app/models.py b/app/models.py
+index 1111111..2222222 100644
+--- a/app/models.py
++++ b/app/models.py
+@@ -1,8 +1,14 @@
+ from django.db import models
+ 
+ 
+ class Order(models.Model):
+     user_id = models.IntegerField()
+     created_at = models.DateTimeField(auto_now_add=True)
++    status = models.CharField(max_length=20, default="pending")
++    # missing: db_index=True su status e created_at
+ 
+     class Meta:
+         db_table = "orders"
++
++
++class OrderItem(models.Model):
++    order = models.ForeignKey(Order, on_delete=models.CASCADE)
++    product_id = models.IntegerField()
++    quantity = models.IntegerField()
++    # missing: db_index=True su order (FK dovrebbe avere indice)

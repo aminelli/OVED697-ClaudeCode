@@ -1,0 +1,58 @@
+[
+  {
+    "id": "pr42_security",
+    "type": "review-comment",
+    "status": "ready",
+    "pr_id": "pr-42",
+    "agent": "security",
+    "file": "artifacts/comments/pr42_security.md",
+    "severity_counts": { "critical": 1, "high": 2, "medium": 0, "low": 0, "info": 1 },
+    "created_at": "2026-05-08T14:00:00Z",
+    "created_by": "claude/security-agent",
+    "relationships": { "part_of_report": "review_pr-42" }
+  },
+  {
+    "id": "pr42_performance",
+    "type": "review-comment",
+    "status": "ready",
+    "pr_id": "pr-42",
+    "agent": "performance",
+    "file": "artifacts/comments/pr42_performance.md",
+    "severity_counts": { "critical": 0, "high": 2, "medium": 1, "low": 0, "info": 0 },
+    "created_at": "2026-05-08T14:00:00Z",
+    "created_by": "claude/performance-agent",
+    "relationships": { "part_of_report": "review_pr-42" }
+  },
+  {
+    "id": "pr42_style",
+    "type": "review-comment",
+    "status": "ready",
+    "pr_id": "pr-42",
+    "agent": "style",
+    "file": "artifacts/comments/pr42_style.md",
+    "severity_counts": { "critical": 0, "high": 0, "medium": 2, "low": 3, "info": 0 },
+    "created_at": "2026-05-08T14:00:00Z",
+    "created_by": "claude/style-agent",
+    "relationships": { "part_of_report": "review_pr-42" }
+  },
+  {
+    "id": "review_pr-42",
+    "type": "review-report",
+    "status": "complete",
+    "pr_id": "pr-42",
+    "verdict": "REQUEST_CHANGES",
+    "file": "artifacts/reports/review_pr-42.md",
+    "created_at": "2026-05-08T14:05:00Z",
+    "created_by": "claude/orchestrator",
+    "relationships": {
+      "sources": ["pr42_security", "pr42_performance", "pr42_style"]
+    },
+    "metadata": {
+      "total_critical": 1,
+      "total_high": 4,
+      "total_medium": 3,
+      "total_low": 3,
+      "total_info": 1
+    }
+  }
+]
