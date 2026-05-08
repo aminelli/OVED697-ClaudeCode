@@ -1,0 +1,18 @@
+product_id,product_name,category,units_sold,revenue,region
+P001,Laptop Pro 15,Electronics,1420,1775000,Nord
+P002,Wireless Mouse,Electronics,3800,95000,Nord
+P003,Standing Desk,Furniture,390,273000,Sud
+P004,Ergonomic Chair,Furniture,720,504000,Centro
+P005,USB-C Hub,Electronics,2450,122500,Nord
+P006,Monitor 4K 27",Electronics,1050,630000,Sud
+P007,Mechanical Keyboard,Electronics,1700,255000,Centro
+P008,Webcam HD,Electronics,2100,105000,Nord
+P009,Bookshelf,Furniture,280,42000,Sud
+P010,Desk Lamp LED,Furniture,830,41500,Centro
+P011,NAS Storage 8TB,Electronics,260,390000,Nord
+P012,Conference Phone,Electronics,510,153000,Centro
+P013,Whiteboard 120cm,Office Supplies,580,40600,Sud
+P014,Printer Laser A4,Electronics,420,168000,Nord
+P015,Paper A4 (ream),Office Supplies,4800,24000,Centro
+P016,Tablet 12",Electronics,340,272000,Nord
+P017,SSD Esterno 2TB,Electronics,890,178000,Sud
