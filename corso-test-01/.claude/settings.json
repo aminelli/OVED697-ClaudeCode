@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Read(data/*)",
+      "Write(output/*)",
+      "Read(skills/**)"
+    ],
+    "deny": [
+      "Write(skills/**)",
+      "Write(data/*)",
+      "Write(CLAUDE.md)"
+    ]
+  },
+  "env": {
+    "OUTPUT_DIR": "output",
+    "DATA_DIR": "data",
+    "DEFAULT_SEPARATOR": ","
+  }
+}
