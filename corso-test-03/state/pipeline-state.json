@@ -1,0 +1,42 @@
+{
+  "pipeline_version": "1.0",
+  "last_updated": "2026-05-08T00:00:00.000Z",
+  "tickets": {
+    "ticket-001": {
+      "status": "unprocessed",
+      "classification_artifact": null,
+      "draft_artifact": null,
+      "steps_completed": [],
+      "current_step": null,
+      "errors": []
+    },
+    "ticket-002": {
+      "status": "unprocessed",
+      "classification_artifact": null,
+      "draft_artifact": null,
+      "steps_completed": [],
+      "current_step": null,
+      "errors": []
+    },
+    "ticket-003": {
+      "status": "unprocessed",
+      "classification_artifact": null,
+      "draft_artifact": null,
+      "steps_completed": [],
+      "current_step": null,
+      "errors": []
+    },
+    "ticket-004": {
+      "status": "unprocessed",
+      "classification_artifact": null,
+      "draft_artifact": null,
+      "steps_completed": [],
+      "current_step": null,
+      "errors": []
+    }
+  },
+  "global": {
+    "total_processed": 0,
+    "pending_review": 0
+  }
+}

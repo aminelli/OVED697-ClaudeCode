@@ -1,0 +1,49 @@
+{
+  "name": "save-classification",
+  "description": "Salva l'artifact di classificazione di un ticket in artifacts/classifications/. Usare SOLO dopo aver analizzato completamente il ticket. Scrive un file Markdown con frontmatter YAML contenente categoria, priorità, sentiment e tag. Sovrascrive se il file esiste già (idempotente).",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "ticket_id": {
+        "type": "string",
+        "description": "L'ID del ticket, es. 'ticket-001'"
+      },
+      "category": {
+        "type": "string",
+        "enum": ["billing", "technical", "account", "complaint", "feature-request", "general"],
+        "description": "Categoria principale del ticket"
+      },
+      "priority": {
+        "type": "string",
+        "enum": ["critical", "high", "medium", "low"],
+        "description": "Priorità del ticket secondo i criteri SLA"
+      },
+      "sentiment": {
+        "type": "string",
+        "enum": ["frustrated", "neutral", "satisfied"],
+        "description": "Sentiment del cliente nel messaggio"
+      },
+      "tags": {
+        "type": "array",
+        "items": { "type": "string" },
+        "maxItems": 5,
+        "description": "Tag descrittivi in kebab-case, max 5"
+      },
+      "summary": {
+        "type": "string",
+        "description": "Sommario del problema in max 15 parole"
+      },
+      "reasoning": {
+        "type": "string",
+        "description": "Spiegazione breve del ragionamento che ha portato a questa classificazione"
+      }
+    },
+    "required": ["ticket_id", "category", "priority", "sentiment", "tags", "summary", "reasoning"]
+  },
+  "_implementation_note": "Costruisci il frontmatter YAML e scrivi in artifacts/classifications/<ticket_id>_classification.md",
+  "_response_example": {
+    "success": true,
+    "artifact_path": "artifacts/classifications/ticket-001_classification.md",
+    "ticket_id": "ticket-001"
+  }
+}

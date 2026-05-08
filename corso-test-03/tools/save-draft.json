@@ -1,0 +1,38 @@
+{
+  "name": "save-draft",
+  "description": "Salva la bozza di risposta per un ticket in artifacts/drafts/. Usare SOLO dopo aver letto la classificazione e il testo originale del ticket. La bozza include [PLACEHOLDER] per i punti che l'operatore deve personalizzare. Sovrascrive se il file esiste già.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "ticket_id": {
+        "type": "string",
+        "description": "L'ID del ticket, es. 'ticket-001'"
+      },
+      "subject": {
+        "type": "string",
+        "description": "Oggetto della risposta email"
+      },
+      "body": {
+        "type": "string",
+        "description": "Corpo della risposta in Markdown. Usare [PLACEHOLDER: descrizione] per parti da personalizzare."
+      },
+      "tone": {
+        "type": "string",
+        "enum": ["formal", "empathetic", "technical", "apologetic"],
+        "description": "Tono della risposta, scelto in base al sentiment del cliente"
+      },
+      "placeholders_count": {
+        "type": "integer",
+        "description": "Numero di [PLACEHOLDER] presenti nel body"
+      }
+    },
+    "required": ["ticket_id", "subject", "body", "tone", "placeholders_count"]
+  },
+  "_implementation_note": "Costruisci il frontmatter YAML e scrivi in artifacts/drafts/<ticket_id>_draft.md",
+  "_response_example": {
+    "success": true,
+    "artifact_path": "artifacts/drafts/ticket-001_draft.md",
+    "ticket_id": "ticket-001",
+    "placeholders_count": 2
+  }
+}

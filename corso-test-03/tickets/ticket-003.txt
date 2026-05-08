@@ -1,0 +1,22 @@
+Buonasera,
+
+sto riscontrando un problema con l'API di export dati. 
+Quando chiamo l'endpoint /api/v2/export con un range di date superiore 
+a 30 giorni, la risposta non arriva mai: il timeout scatta dopo 60 secondi.
+
+Con range inferiori a 30 giorni funziona correttamente.
+
+Dettagli tecnici:
+- Endpoint: POST /api/v2/export
+- Parametri: date_from=2026-01-01, date_to=2026-04-30
+- Risposta: timeout dopo 60s (HTTP 504)
+- Environment: produzione
+- Account ID: ACC-48291
+
+Il problema si ripete in modo consistente dal 5 maggio.
+Ho verificato che non ci sono problemi di rete dal nostro lato.
+
+Potete investigare? Abbiamo report mensili automatici che dipendono da questo endpoint.
+
+Grazie,
+Dev Team - Rossi S.p.A.

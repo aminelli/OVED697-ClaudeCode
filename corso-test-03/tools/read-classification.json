@@ -1,0 +1,30 @@
+{
+  "name": "read-classification",
+  "description": "Legge l'artifact di classificazione già prodotto da classifier-agent per un ticket. Usare come PRIMO passo in responder-agent, prima di generare la bozza risposta. Ritorna il frontmatter strutturato con categoria, priorità, sentiment e tag. Se la classificazione non esiste ancora, ritorna success:false — in quel caso interrompere e segnalare che classifier-agent deve essere eseguito prima.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "ticket_id": {
+        "type": "string",
+        "description": "L'ID del ticket, es. 'ticket-001'"
+      }
+    },
+    "required": ["ticket_id"]
+  },
+  "_implementation_note": "Leggi artifacts/classifications/<ticket_id>_classification.md e parsa il frontmatter YAML.",
+  "_response_example": {
+    "success": true,
+    "ticket_id": "ticket-001",
+    "classification": {
+      "category": "account",
+      "priority": "high",
+      "sentiment": "frustrated",
+      "tags": ["accesso-bloccato", "password", "urgente"],
+      "summary": "Cliente non riesce ad accedere all'account dopo cambio password"
+    }
+  },
+  "_error_example": {
+    "success": false,
+    "error": "Classificazione non trovata per ticket-001. Eseguire prima classifier-agent."
+  }
+}

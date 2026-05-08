@@ -1,0 +1,10 @@
+Ciao,
+
+vorrei sapere se è possibile esportare i dati in formato Excel (.xlsx) 
+oltre al CSV che già supportate.
+
+Lavoro spesso con colleghi che non sanno usare i CSV e dover convertire 
+ogni volta è scomodo. Sarebbe una funzionalità molto utile per noi.
+
+Grazie per il supporto,
+Giulia Marino

@@ -1,0 +1,25 @@
+{
+  "name": "read-ticket",
+  "description": "Legge il contenuto testuale grezzo di un ticket di supporto dalla cartella tickets/. Usare SEMPRE come primo passo prima di classificare. Ritorna il testo completo del ticket. Se il ticket non esiste, ritorna success:false con un messaggio di errore.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "ticket_id": {
+        "type": "string",
+        "description": "L'ID del ticket da leggere, es. 'ticket-001'. Non includere l'estensione .txt."
+      }
+    },
+    "required": ["ticket_id"]
+  },
+  "_implementation_note": "Leggi il file tickets/<ticket_id>.txt e ritorna il suo contenuto.",
+  "_response_example": {
+    "success": true,
+    "ticket_id": "ticket-001",
+    "content": "Buongiorno, non riesco ad accedere al mio account...",
+    "char_count": 245
+  },
+  "_error_example": {
+    "success": false,
+    "error": "Ticket 'ticket-999' non trovato in tickets/"
+  }
+}

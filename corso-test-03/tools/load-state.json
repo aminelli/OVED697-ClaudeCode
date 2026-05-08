@@ -1,0 +1,31 @@
+{
+  "name": "load-state",
+  "description": "Carica lo stato corrente della pipeline dal file state/pipeline-state.json. Usare SEMPRE come primo passo prima di qualsiasi operazione orchestrata. Ritorna lo stato completo di tutti i ticket. Se il file non esiste, crea uno stato iniziale vuoto e lo ritorna.",
+  "input_schema": {
+    "type": "object",
+    "properties": {},
+    "required": []
+  },
+  "_implementation_note": "Leggi state/pipeline-state.json. Se non esiste, crea il file con la struttura iniziale.",
+  "_response_example": {
+    "success": true,
+    "state": {
+      "pipeline_version": "1.0",
+      "last_updated": "2026-05-08T10:00:00.000Z",
+      "tickets": {
+        "ticket-001": {
+          "status": "draft-ready",
+          "classification_artifact": "artifacts/classifications/ticket-001_classification.md",
+          "draft_artifact": "artifacts/drafts/ticket-001_draft.md",
+          "steps_completed": ["classify", "draft"],
+          "current_step": null,
+          "errors": []
+        }
+      },
+      "global": {
+        "total_processed": 1,
+        "pending_review": 1
+      }
+    }
+  }
+}

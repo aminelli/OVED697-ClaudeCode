@@ -1,0 +1,43 @@
+{
+  "name": "update-ticket-status",
+  "description": "Aggiorna lo stato di un singolo ticket nella pipeline senza sovrascrivere l'intero stato. Usare per transizioni di stato puntuali: es. da 'unprocessed' a 'processing', o aggiungere uno step_completed. Legge lo stato attuale, aggiorna solo il ticket specificato, e salva. Garantisce atomicità per singolo ticket.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "ticket_id": {
+        "type": "string",
+        "description": "L'ID del ticket da aggiornare"
+      },
+      "new_status": {
+        "type": "string",
+        "enum": ["unprocessed", "processing", "classified", "draft-ready", "approved", "rejected"],
+        "description": "Il nuovo status del ticket"
+      },
+      "step_completed": {
+        "type": "string",
+        "description": "Opzionale: nome dello step da aggiungere a steps_completed (es. 'classify', 'draft')"
+      },
+      "artifact_path": {
+        "type": "string",
+        "description": "Opzionale: path dell'artifact prodotto in questo step"
+      },
+      "artifact_type": {
+        "type": "string",
+        "enum": ["classification", "draft"],
+        "description": "Tipo di artifact (richiesto se artifact_path è fornito)"
+      },
+      "error": {
+        "type": "string",
+        "description": "Opzionale: messaggio di errore da aggiungere a errors[]"
+      }
+    },
+    "required": ["ticket_id", "new_status"]
+  },
+  "_implementation_note": "Leggi state/pipeline-state.json, aggiorna solo il ticket indicato, salva. Aggiorna anche global.total_processed e global.pending_review.",
+  "_response_example": {
+    "success": true,
+    "ticket_id": "ticket-001",
+    "previous_status": "processing",
+    "new_status": "classified"
+  }
+}

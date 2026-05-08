@@ -1,0 +1,15 @@
+{
+  "permissions": {
+    "allow": [
+      "Read(tickets/**)",
+      "Read(artifacts/**)",
+      "Write(artifacts/**)",
+      "Read(state/**)",
+      "Write(state/**)",
+      "Read(agents/**)",
+      "Read(skills/**)",
+      "Read(tools/**)"
+    ],
+    "deny": []
+  }
+}

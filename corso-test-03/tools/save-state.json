@@ -1,0 +1,25 @@
+{
+  "name": "save-state",
+  "description": "Salva lo stato aggiornato della pipeline nel file state/pipeline-state.json. Usare DOPO ogni step completato. Il timestamp last_updated viene aggiornato automaticamente. Non usare per aggiornare solo un ticket: preferire update-ticket-status per modifiche singole.",
+  "input_schema": {
+    "type": "object",
+    "properties": {
+      "state": {
+        "type": "object",
+        "description": "L'intero oggetto stato della pipeline da persisitere",
+        "properties": {
+          "pipeline_version": { "type": "string" },
+          "tickets": { "type": "object" },
+          "global": { "type": "object" }
+        },
+        "required": ["pipeline_version", "tickets", "global"]
+      }
+    },
+    "required": ["state"]
+  },
+  "_implementation_note": "Aggiorna state.last_updated con l'ISO timestamp corrente prima di scrivere.",
+  "_response_example": {
+    "success": true,
+    "last_updated": "2026-05-08T10:05:00.000Z"
+  }
+}
