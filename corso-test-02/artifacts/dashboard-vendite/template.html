@@ -1,0 +1,453 @@
+<!DOCTYPE html>
+<!--
+  TEMPLATE: dashboard-vendite
+  ============================================================
+  Questo file è il TEMPLATE per l'artifact dashboard-vendite.
+  Claude lo usa come struttura base e sostituisce ogni {{PLACEHOLDER}}
+  con i valori reali letti dal CSV.
+
+  PLACEHOLDER DA SOSTITUIRE:
+    {{TITOLO}}                    → titolo della dashboard
+    {{DATA_GENERAZIONE}}          → data in formato DD/MM/YYYY
+    {{NOME_FILE_SORGENTE}}        → nome del file CSV
+    {{DATA_JSON}}                 → array JSON con tutti i dati
+    {{MESI_DISPONIBILI_JSON}}     → array JSON di mesi unici ordinati
+    {{REGIONI_DISPONIBILI_JSON}}  → array JSON di regioni uniche
+    {{CATEGORIE_DISPONIBILI_JSON}}→ array JSON di categorie ([] se assente)
+  ============================================================
+-->
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITOLO}}</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4"></script>
+  <style>
+    /* ── Reset & base ─────────────────────────────────────── */
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+    :root {
+      --bg:        #f0f2f5;
+      --surface:   #ffffff;
+      --border:    #e2e8f0;
+      --text:      #1a202c;
+      --text-muted:#718096;
+      --primary:   #4f46e5;
+      --primary-lt:#eef2ff;
+      --success:   #059669;
+      --warn:      #d97706;
+      --danger:    #dc2626;
+      --radius:    10px;
+      --shadow:    0 1px 3px rgba(0,0,0,.08), 0 1px 2px rgba(0,0,0,.06);
+      --shadow-md: 0 4px 6px rgba(0,0,0,.07), 0 2px 4px rgba(0,0,0,.06);
+      /* Palette grafici — 5 colori per 5 punti vendita */
+      --c1: #4f46e5; --c2: #0ea5e9; --c3: #10b981;
+      --c4: #f59e0b; --c5: #ef4444;
+    }
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+      background: var(--bg); color: var(--text); line-height: 1.5; min-height: 100vh;
+    }
+
+    /* ── Header ───────────────────────────────────────────── */
+    .header {
+      background: var(--primary); color: #fff;
+      padding: 20px 32px; display: flex; justify-content: space-between;
+      align-items: center; box-shadow: var(--shadow-md);
+    }
+    .header h1 { font-size: 1.4rem; font-weight: 700; }
+    .header .meta { font-size: .82rem; opacity: .8; text-align: right; }
+
+    /* ── Main layout ──────────────────────────────────────── */
+    .main { max-width: 1280px; margin: 0 auto; padding: 24px 32px; }
+
+    /* ── Filtri ───────────────────────────────────────────── */
+    .filters {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 16px 20px;
+      display: flex; flex-wrap: wrap; gap: 12px; align-items: flex-end;
+      margin-bottom: 24px; box-shadow: var(--shadow);
+    }
+    .filter-group { display: flex; flex-direction: column; gap: 4px; }
+    .filter-group label { font-size: .78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; }
+    .filter-group select {
+      border: 1px solid var(--border); border-radius: 6px;
+      padding: 7px 12px; font-size: .9rem; background: #fff; color: var(--text);
+      cursor: pointer; min-width: 160px;
+    }
+    .filter-group select:focus { outline: 2px solid var(--primary); outline-offset: 1px; }
+    .btn-reset {
+      background: var(--primary-lt); color: var(--primary); border: 1px solid var(--primary);
+      border-radius: 6px; padding: 7px 16px; font-size: .9rem; font-weight: 600;
+      cursor: pointer; align-self: flex-end;
+    }
+    .btn-reset:hover { background: var(--primary); color: #fff; }
+
+    /* ── KPI Cards ────────────────────────────────────────── */
+    .kpi-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 16px; margin-bottom: 24px; }
+    .kpi-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px 24px; box-shadow: var(--shadow);
+    }
+    .kpi-card .label { font-size: .78rem; font-weight: 600; color: var(--text-muted); text-transform: uppercase; letter-spacing: .04em; margin-bottom: 6px; }
+    .kpi-card .value { font-size: 1.7rem; font-weight: 800; color: var(--text); }
+    .kpi-card .sub   { font-size: .82rem; color: var(--text-muted); margin-top: 4px; }
+    .kpi-card.highlight { border-left: 4px solid var(--primary); }
+
+    /* ── Charts grid ──────────────────────────────────────── */
+    .charts-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 20px; margin-bottom: 24px; }
+    .chart-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+    }
+    .chart-card.full-width { grid-column: 1 / -1; }
+    .chart-card h3 { font-size: .92rem; font-weight: 700; margin-bottom: 16px; color: var(--text); }
+    .chart-wrap { position: relative; height: 260px; }
+    .chart-wrap.tall { height: 320px; }
+
+    /* ── Tabella ranking ──────────────────────────────────── */
+    .table-card {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); padding: 20px; box-shadow: var(--shadow);
+      margin-bottom: 24px; overflow-x: auto;
+    }
+    .table-card h3 { font-size: .92rem; font-weight: 700; margin-bottom: 16px; }
+    table { width: 100%; border-collapse: collapse; font-size: .88rem; }
+    th { background: var(--bg); padding: 10px 14px; text-align: left; font-weight: 700; font-size: .78rem; text-transform: uppercase; color: var(--text-muted); letter-spacing: .03em; border-bottom: 2px solid var(--border); }
+    td { padding: 10px 14px; border-bottom: 1px solid var(--border); }
+    tr:last-child td { border-bottom: none; }
+    tr:hover td { background: var(--bg); }
+    .badge { display: inline-block; padding: 2px 8px; border-radius: 20px; font-size: .76rem; font-weight: 600; }
+    .badge-up   { background: #dcfce7; color: var(--success); }
+    .badge-down { background: #fee2e2; color: var(--danger); }
+    .badge-flat { background: #fef9c3; color: var(--warn); }
+    .rank-num { font-weight: 800; color: var(--primary); min-width: 24px; display: inline-block; }
+
+    /* ── Footer ───────────────────────────────────────────── */
+    .footer { text-align: center; font-size: .78rem; color: var(--text-muted); padding: 24px 0 32px; }
+
+    /* ── Responsive ───────────────────────────────────────── */
+    @media (max-width: 900px) {
+      .charts-grid { grid-template-columns: 1fr; }
+      .chart-card.full-width { grid-column: 1; }
+      .main { padding: 16px; }
+    }
+  </style>
+</head>
+<body>
+
+<header class="header">
+  <div>
+    <h1>{{TITOLO}}</h1>
+    <div style="font-size:.82rem;opacity:.8;margin-top:3px">Fonte: {{NOME_FILE_SORGENTE}}</div>
+  </div>
+  <div class="meta">Generato il {{DATA_GENERAZIONE}}</div>
+</header>
+
+<main class="main">
+
+  <!-- ── Filtri ── -->
+  <div class="filters">
+    <div class="filter-group">
+      <label>Regione</label>
+      <select id="sel-regione">
+        <option value="">Tutte le regioni</option>
+      </select>
+    </div>
+    <div class="filter-group">
+      <label>Mese</label>
+      <select id="sel-mese">
+        <option value="">Tutti i mesi</option>
+      </select>
+    </div>
+    <div class="filter-group" id="wrap-categoria" style="display:none">
+      <label>Categoria</label>
+      <select id="sel-categoria">
+        <option value="">Tutte le categorie</option>
+      </select>
+    </div>
+    <button class="btn-reset" onclick="resetFiltri()">↺ Reset filtri</button>
+  </div>
+
+  <!-- ── KPI Cards ── -->
+  <div class="kpi-grid">
+    <div class="kpi-card highlight">
+      <div class="label">Fatturato totale</div>
+      <div class="value" id="kpi-fatturato">—</div>
+      <div class="sub" id="kpi-ordini">— ordini</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Punto Vendita Top</div>
+      <div class="value" id="kpi-top-pv" style="font-size:1.1rem">—</div>
+      <div class="sub" id="kpi-top-pv-val">—</div>
+    </div>
+    <div class="kpi-card">
+      <div class="label">Mese Migliore</div>
+      <div class="value" id="kpi-top-mese" style="font-size:1.1rem">—</div>
+      <div class="sub" id="kpi-top-mese-val">—</div>
+    </div>
+    <div class="kpi-card" id="kpi-unita-card" style="display:none">
+      <div class="label">Unità vendute</div>
+      <div class="value" id="kpi-unita">—</div>
+    </div>
+  </div>
+
+  <!-- ── Grafici ── -->
+  <div class="charts-grid">
+    <div class="chart-card">
+      <h3>Fatturato per Punto Vendita</h3>
+      <div class="chart-wrap">
+        <canvas id="chart-bar"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <h3>Trend Mensile</h3>
+      <div class="chart-wrap">
+        <canvas id="chart-line"></canvas>
+      </div>
+    </div>
+    <div class="chart-card" id="card-donut" style="display:none">
+      <h3>Mix per Categoria</h3>
+      <div class="chart-wrap" style="height:260px">
+        <canvas id="chart-donut"></canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- ── Tabella ranking ── -->
+  <div class="table-card">
+    <h3>Ranking Punti Vendita</h3>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Punto Vendita</th>
+          <th>Regione</th>
+          <th style="text-align:right">Fatturato</th>
+          <th style="text-align:right">% sul totale</th>
+        </tr>
+      </thead>
+      <tbody id="tbody-ranking"></tbody>
+    </table>
+  </div>
+
+</main>
+
+<footer class="footer">
+  Dashboard generata da Claude Code · Dati: {{NOME_FILE_SORGENTE}} · {{DATA_GENERAZIONE}}
+</footer>
+
+<script>
+  /* ─────────────────────────────────────────────────────────
+     DATI EMBEDDED — sostituiti da Claude con i valori reali
+     ───────────────────────────────────────────────────────── */
+  const DATI       = {{DATA_JSON}};
+  const MESI       = {{MESI_DISPONIBILI_JSON}};
+  const REGIONI    = {{REGIONI_DISPONIBILI_JSON}};
+  const CATEGORIE  = {{CATEGORIE_DISPONIBILI_JSON}};
+
+  /* Palette colori grafici */
+  const PALETTE = [
+    'rgba(79,70,229,.85)',  'rgba(14,165,233,.85)',
+    'rgba(16,185,129,.85)', 'rgba(245,158,11,.85)',
+    'rgba(239,68,68,.85)',  'rgba(168,85,247,.85)'
+  ];
+
+  /* ─── Popola select filtri ─────────────────────────────── */
+  function popolaSelect(id, valori) {
+    const sel = document.getElementById(id);
+    valori.forEach(v => {
+      const opt = document.createElement('option');
+      opt.value = opt.textContent = v;
+      sel.appendChild(opt);
+    });
+  }
+  popolaSelect('sel-regione', REGIONI);
+  popolaSelect('sel-mese', MESI);
+  if (CATEGORIE.length > 0) {
+    document.getElementById('wrap-categoria').style.display = 'flex';
+    document.getElementById('card-donut').style.display = 'block';
+    popolaSelect('sel-categoria', CATEGORIE);
+  }
+
+  /* ─── Filtro dati ──────────────────────────────────────── */
+  function getDatiFiltrati() {
+    const r = document.getElementById('sel-regione').value;
+    const m = document.getElementById('sel-mese').value;
+    const c = document.getElementById('sel-categoria').value;
+    return DATI.filter(d =>
+      (!r || d.regione === r) &&
+      (!m || d.mese === m) &&
+      (!c || d.categoria === c)
+    );
+  }
+
+  /* ─── Utility ──────────────────────────────────────────── */
+  function fmtEur(n) {
+    return '€' + n.toLocaleString('it-IT', {minimumFractionDigits: 2, maximumFractionDigits: 2});
+  }
+  function groupBy(arr, key, valFn) {
+    const map = {};
+    arr.forEach(d => {
+      map[d[key]] = (map[d[key]] || 0) + valFn(d);
+    });
+    return map;
+  }
+  function sortedEntries(obj) {
+    return Object.entries(obj).sort((a, b) => b[1] - a[1]);
+  }
+
+  /* ─── Istanze Chart.js ─────────────────────────────────── */
+  let chartBar, chartLine, chartDonut;
+  function destroyCharts() {
+    [chartBar, chartLine, chartDonut].forEach(c => c && c.destroy());
+  }
+
+  /* ─── Render principale ────────────────────────────────── */
+  function render() {
+    const dati = getDatiFiltrati();
+    destroyCharts();
+
+    /* ── KPI ── */
+    const totFatt = dati.reduce((s, d) => s + d.fatturato, 0);
+    document.getElementById('kpi-fatturato').textContent = fmtEur(totFatt);
+    document.getElementById('kpi-ordini').textContent = dati.length + ' righe';
+
+    const pvMap = groupBy(dati, 'punto_vendita', d => d.fatturato);
+    const pvTop = sortedEntries(pvMap)[0];
+    if (pvTop) {
+      document.getElementById('kpi-top-pv').textContent = pvTop[0];
+      document.getElementById('kpi-top-pv-val').textContent = fmtEur(pvTop[1]);
+    }
+
+    const meseMap = groupBy(dati, 'mese', d => d.fatturato);
+    const meseTop = sortedEntries(meseMap)[0];
+    if (meseTop) {
+      document.getElementById('kpi-top-mese').textContent = meseTop[0];
+      document.getElementById('kpi-top-mese-val').textContent = fmtEur(meseTop[1]);
+    }
+
+    const hasUnita = dati.some(d => d.unita_vendute != null);
+    if (hasUnita) {
+      const totUnita = dati.reduce((s, d) => s + (d.unita_vendute || 0), 0);
+      document.getElementById('kpi-unita').textContent = totUnita.toLocaleString('it-IT');
+      document.getElementById('kpi-unita-card').style.display = 'block';
+    }
+
+    /* ── Bar chart: fatturato per PV ── */
+    const pvEntries = sortedEntries(pvMap);
+    const ctxBar = document.getElementById('chart-bar').getContext('2d');
+    chartBar = new Chart(ctxBar, {
+      type: 'bar',
+      data: {
+        labels: pvEntries.map(e => e[0]),
+        datasets: [{
+          label: 'Fatturato',
+          data: pvEntries.map(e => e[1]),
+          backgroundColor: pvEntries.map((_, i) => PALETTE[i % PALETTE.length]),
+          borderRadius: 6, borderSkipped: false
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false },
+          tooltip: { callbacks: { label: ctx => ' ' + fmtEur(ctx.raw) } }
+        },
+        scales: {
+          y: { ticks: { callback: v => fmtEur(v) }, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    /* ── Line chart: trend mensile ── */
+    const mesiOrdinati = [...new Set(dati.map(d => d.mese))].sort();
+    const pvNomi = Object.keys(pvMap);
+    const ctxLine = document.getElementById('chart-line').getContext('2d');
+    chartLine = new Chart(ctxLine, {
+      type: 'line',
+      data: {
+        labels: mesiOrdinati,
+        datasets: pvNomi.map((pv, i) => ({
+          label: pv,
+          data: mesiOrdinati.map(m =>
+            dati.filter(d => d.punto_vendita === pv && d.mese === m)
+                .reduce((s, d) => s + d.fatturato, 0)
+          ),
+          borderColor: PALETTE[i % PALETTE.length],
+          backgroundColor: PALETTE[i % PALETTE.length].replace('.85', '.1'),
+          tension: .3, pointRadius: 4, fill: false, borderWidth: 2
+        }))
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { position: 'bottom', labels: { boxWidth: 12, font: { size: 11 } } },
+          tooltip: { callbacks: { label: ctx => ' ' + ctx.dataset.label + ': ' + fmtEur(ctx.raw) } }
+        },
+        scales: {
+          y: { ticks: { callback: v => fmtEur(v) }, grid: { color: '#f1f5f9' } },
+          x: { grid: { display: false } }
+        }
+      }
+    });
+
+    /* ── Donut chart: mix per categoria ── */
+    if (CATEGORIE.length > 0) {
+      const catMap = groupBy(dati, 'categoria', d => d.fatturato);
+      const catEntries = sortedEntries(catMap);
+      const ctxDonut = document.getElementById('chart-donut').getContext('2d');
+      chartDonut = new Chart(ctxDonut, {
+        type: 'doughnut',
+        data: {
+          labels: catEntries.map(e => e[0]),
+          datasets: [{
+            data: catEntries.map(e => e[1]),
+            backgroundColor: catEntries.map((_, i) => PALETTE[i % PALETTE.length]),
+            borderWidth: 2, borderColor: '#fff', hoverOffset: 8
+          }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'right', labels: { boxWidth: 14, font: { size: 11 } } },
+            tooltip: { callbacks: { label: ctx => ' ' + ctx.label + ': ' + fmtEur(ctx.raw) } }
+          }
+        }
+      });
+    }
+
+    /* ── Tabella ranking ── */
+    const tbody = document.getElementById('tbody-ranking');
+    tbody.innerHTML = '';
+    const pvRegione = {};
+    dati.forEach(d => { if (!pvRegione[d.punto_vendita]) pvRegione[d.punto_vendita] = d.regione; });
+    pvEntries.forEach(([pv, fatt], i) => {
+      const pct = totFatt > 0 ? (fatt / totFatt * 100).toFixed(1) : 0;
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><span class="rank-num">${i + 1}</span></td>
+        <td><strong>${pv}</strong></td>
+        <td>${pvRegione[pv] || '—'}</td>
+        <td style="text-align:right">${fmtEur(fatt)}</td>
+        <td style="text-align:right">${pct}%</td>
+      `;
+      tbody.appendChild(tr);
+    });
+  }
+
+  /* ─── Event listeners ──────────────────────────────────── */
+  ['sel-regione', 'sel-mese', 'sel-categoria'].forEach(id => {
+    document.getElementById(id).addEventListener('change', render);
+  });
+  function resetFiltri() {
+    ['sel-regione', 'sel-mese', 'sel-categoria'].forEach(id => {
+      document.getElementById(id).value = '';
+    });
+    render();
+  }
+
+  /* ─── Primo render ─────────────────────────────────────── */
+  render();
+</script>
+
+</body>
+</html>

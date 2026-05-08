@@ -1,0 +1,22 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(python:*)",
+      "Read(data/*)",
+      "Write(output/*)",
+      "Read(artifacts/**)",
+      "Read(skills/**)"
+    ],
+    "deny": [
+      "Write(artifacts/**)",
+      "Write(skills/**)",
+      "Write(data/*)",
+      "Write(CLAUDE.md)"
+    ]
+  },
+  "env": {
+    "OUTPUT_DIR": "output",
+    "DATA_DIR": "data",
+    "CHART_JS_CDN": "https://cdn.jsdelivr.net/npm/chart.js@4"
+  }
+}

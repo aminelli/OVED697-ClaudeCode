@@ -1,0 +1,87 @@
+<!DOCTYPE html>
+<!--
+  TEMPLATE: componente-card
+  ============================================================
+  Componente standalone: una singola card per punto vendita.
+  Larghezza fissa 320px (mobile-first). CSS scoped con prefisso .pvcard.
+
+  PLACEHOLDER DA SOSTITUIRE:
+    {{NOME_PV}}     → nome del punto vendita
+    {{REGIONE}}     → nome regione (oppure stringa vuota)
+    {{FATTURATO}}   → es. "€ 48.320,00"
+    {{VAR_PCT}}     → es. "+12.3%" oppure "-4.1%"
+    {{TREND_CLASS}} → "trend-up" oppure "trend-down" oppure "trend-flat"
+    {{DATA_RIF}}    → es. "Aprile 2025"
+  ============================================================
+-->
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <title>Card — {{NOME_PV}}</title>
+  <style>
+    /* Reset minimale — non impatta parent se embedded */
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           display: flex; justify-content: center; align-items: center;
+           min-height: 100vh; background: #f0f2f5; margin: 0; }
+
+    /* ── Card — tutto con prefisso .pvcard per isolare i CSS ── */
+    .pvcard {
+      width: 320px; background: #fff; border-radius: 16px;
+      box-shadow: 0 4px 24px rgba(0,0,0,.1); overflow: hidden; font-size: 15px;
+    }
+    .pvcard__header {
+      background: linear-gradient(135deg, #4f46e5, #7c3aed);
+      color: #fff; padding: 20px 20px 16px;
+    }
+    .pvcard__name  { font-size: 1.1rem; font-weight: 800; margin-bottom: 4px; }
+    .pvcard__badge {
+      display: inline-block; background: rgba(255,255,255,.2);
+      border-radius: 20px; padding: 2px 10px; font-size: .75rem; font-weight: 600;
+    }
+    .pvcard__body  { padding: 20px; }
+    .pvcard__kpi-label { font-size: .72rem; font-weight: 700; text-transform: uppercase;
+                         letter-spacing: .05em; color: #718096; margin-bottom: 4px; }
+    .pvcard__kpi-value { font-size: 1.9rem; font-weight: 900; color: #1a202c; }
+    .pvcard__trend { display: flex; align-items: center; gap: 6px; margin-top: 12px; }
+    .pvcard__trend-icon { font-size: 1.1rem; }
+    .pvcard__trend-pct  { font-size: .92rem; font-weight: 700; }
+    .pvcard__trend-desc { font-size: .82rem; color: #718096; }
+    .pvcard__footer {
+      border-top: 1px solid #e2e8f0; padding: 12px 20px;
+      font-size: .78rem; color: #718096;
+    }
+
+    /* Varianti trend */
+    .trend-up   .pvcard__trend-icon { color: #059669; }
+    .trend-up   .pvcard__trend-pct  { color: #059669; }
+    .trend-down .pvcard__trend-icon { color: #dc2626; }
+    .trend-down .pvcard__trend-pct  { color: #dc2626; }
+    .trend-flat .pvcard__trend-icon { color: #d97706; }
+    .trend-flat .pvcard__trend-pct  { color: #d97706; }
+  </style>
+</head>
+<body>
+
+<div class="pvcard {{TREND_CLASS}}">
+  <div class="pvcard__header">
+    <div class="pvcard__name">{{NOME_PV}}</div>
+    <span class="pvcard__badge">{{REGIONE}}</span>
+  </div>
+  <div class="pvcard__body">
+    <div class="pvcard__kpi-label">Fatturato</div>
+    <div class="pvcard__kpi-value">{{FATTURATO}}</div>
+    <div class="pvcard__trend">
+      <!-- L'icona cambia in base a TREND_CLASS: up=▲ down=▼ flat=▶ -->
+      <span class="pvcard__trend-icon">
+        <!-- trend-up → ▲  |  trend-down → ▼  |  trend-flat → ▶ -->
+        {{TREND_ICON}}
+      </span>
+      <span class="pvcard__trend-pct">{{VAR_PCT}}</span>
+      <span class="pvcard__trend-desc">vs mese precedente</span>
+    </div>
+  </div>
+  <div class="pvcard__footer">📅 {{DATA_RIF}}</div>
+</div>
+
+</body>
+</html>

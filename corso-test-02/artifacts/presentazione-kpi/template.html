@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<!--
+  TEMPLATE: presentazione-kpi
+  ============================================================
+  Slide deck HTML puro — nessuna dipendenza esterna.
+  Navigazione: tasti freccia sinistra/destra o click sui bordi.
+
+  PLACEHOLDER DA SOSTITUIRE:
+    {{TITOLO_PRESENTAZIONE}}  → es. "Performance Vendite Q1 2025"
+    {{PERIODO}}               → es. "Gennaio – Giugno 2025"
+    {{DATA_REPORT}}           → DD/MM/YYYY
+    {{TOTALE_FATTURATO}}      → es. "€ 1.234.567,00"
+    {{TOP_PV}}                → nome punto vendita top
+    {{TOP_PV_FATTURATO}}      → fatturato top PV
+    {{N_PV}}                  → numero punti vendita
+    {{RANKING_ROWS}}          → righe <tr> della tabella ranking
+    {{TREND_ROWS}}            → righe <tr> della tabella trend mensile
+    {{INSIGHT_1}}             → primo insight testuale
+    {{INSIGHT_2}}             → secondo insight
+    {{INSIGHT_3}}             → terzo insight
+  ============================================================
+-->
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>{{TITOLO_PRESENTAZIONE}}</title>
+  <style>
+    :root {
+      --primary: #4f46e5; --primary-dark: #3730a3; --primary-lt: #eef2ff;
+      --accent: #0ea5e9; --success: #059669; --text: #1a202c; --text-muted: #718096;
+      --bg-slide: #f8fafc; --white: #ffffff;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+           background: #1e1e2e; overflow: hidden; user-select: none; }
+
+    /* ── Slider container ────────────────────────────────── */
+    .slider { width: 100vw; height: 100vh; display: flex; transition: transform .45s cubic-bezier(.4,0,.2,1); }
+
+    /* ── Singola slide ───────────────────────────────────── */
+    .slide {
+      min-width: 100vw; height: 100vh;
+      display: flex; flex-direction: column; justify-content: center; align-items: center;
+      padding: 60px 80px; position: relative; overflow: hidden;
+    }
+    .slide-cover    { background: linear-gradient(135deg, var(--primary-dark) 0%, var(--primary) 60%, var(--accent) 100%); color: #fff; }
+    .slide-content  { background: var(--bg-slide); }
+    .slide-dark     { background: #1a202c; color: #e2e8f0; }
+
+    /* ── Numero slide ────────────────────────────────────── */
+    .slide-num { position: absolute; bottom: 24px; right: 32px; font-size: .78rem; opacity: .5; }
+
+    /* ── Frecce nav ──────────────────────────────────────── */
+    .nav-btn {
+      position: fixed; top: 50%; transform: translateY(-50%);
+      z-index: 100; background: rgba(255,255,255,.15); border: none;
+      color: #fff; font-size: 1.6rem; width: 48px; height: 80px;
+      border-radius: 8px; cursor: pointer; transition: background .2s;
+      display: flex; align-items: center; justify-content: center;
+    }
+    .nav-btn:hover { background: rgba(255,255,255,.3); }
+    .nav-prev { left: 12px; }
+    .nav-next { right: 12px; }
+    .nav-btn:disabled { opacity: .15; cursor: default; }
+
+    /* ── Titoli ──────────────────────────────────────────── */
+    .cover-title    { font-size: clamp(2rem,4vw,3.2rem); font-weight: 800; text-align: center; margin-bottom: 16px; }
+    .cover-subtitle { font-size: clamp(1rem,2vw,1.4rem); opacity: .8; text-align: center; }
+    .cover-date     { margin-top: 40px; font-size: .9rem; opacity: .6; }
+    .slide-title    { font-size: clamp(1.4rem,3vw,2.2rem); font-weight: 800; color: var(--primary); margin-bottom: 32px; text-align: center; }
+
+    /* ── KPI cards (slide 2) ─────────────────────────────── */
+    .kpi-row { display: flex; gap: 24px; justify-content: center; flex-wrap: wrap; }
+    .kpi-box {
+      background: var(--white); border-radius: 16px; padding: 28px 36px;
+      box-shadow: 0 4px 24px rgba(79,70,229,.12); text-align: center; min-width: 220px;
+    }
+    .kpi-box .k-label { font-size: .8rem; font-weight: 700; text-transform: uppercase; letter-spacing: .06em; color: var(--text-muted); margin-bottom: 8px; }
+    .kpi-box .k-value { font-size: 2rem; font-weight: 900; color: var(--text); }
+    .kpi-box .k-sub   { font-size: .82rem; color: var(--text-muted); margin-top: 4px; }
+
+    /* ── Tabelle ─────────────────────────────────────────── */
+    .pres-table { width: 100%; border-collapse: collapse; font-size: .9rem; }
+    .pres-table th { background: var(--primary-lt); color: var(--primary); padding: 10px 16px; text-align: left; font-size: .78rem; text-transform: uppercase; letter-spacing: .04em; }
+    .pres-table td { padding: 10px 16px; border-bottom: 1px solid #e2e8f0; }
+    .pres-table tr:last-child td { border-bottom: none; }
+    .pres-table tr:hover td { background: #f8fafc; }
+    .tbl-wrap { background: var(--white); border-radius: 12px; overflow: hidden; box-shadow: 0 2px 12px rgba(0,0,0,.07); width: 100%; max-width: 700px; }
+
+    /* ── Insight list (slide 5) ──────────────────────────── */
+    .insight-list { list-style: none; width: 100%; max-width: 640px; }
+    .insight-list li {
+      background: rgba(255,255,255,.08); border-left: 4px solid var(--accent);
+      border-radius: 8px; padding: 14px 20px; margin-bottom: 14px;
+      font-size: 1rem; line-height: 1.55;
+    }
+    .insight-list li::before { content: "→ "; color: var(--accent); font-weight: 700; }
+  </style>
+</head>
+<body>
+
+<!-- Frecce navigazione -->
+<button class="nav-btn nav-prev" id="btn-prev" onclick="navSlide(-1)" disabled>‹</button>
+<button class="nav-btn nav-next" id="btn-next" onclick="navSlide(+1)">›</button>
+
+<!-- Slider -->
+<div class="slider" id="slider">
+
+  <!-- SLIDE 1 — Copertina -->
+  <div class="slide slide-cover">
+    <div class="cover-title">{{TITOLO_PRESENTAZIONE}}</div>
+    <div class="cover-subtitle">{{PERIODO}}</div>
+    <div class="cover-date">Report generato il {{DATA_REPORT}}</div>
+    <div class="slide-num">1 / 5</div>
+  </div>
+
+  <!-- SLIDE 2 — KPI Overview -->
+  <div class="slide slide-content">
+    <div class="slide-title">KPI Principali</div>
+    <div class="kpi-row">
+      <div class="kpi-box">
+        <div class="k-label">Fatturato Totale</div>
+        <div class="k-value">{{TOTALE_FATTURATO}}</div>
+        <div class="k-sub">Periodo: {{PERIODO}}</div>
+      </div>
+      <div class="kpi-box">
+        <div class="k-label">Punti Vendita</div>
+        <div class="k-value">{{N_PV}}</div>
+        <div class="k-sub">attivi nel periodo</div>
+      </div>
+      <div class="kpi-box">
+        <div class="k-label">Top Performer</div>
+        <div class="k-value" style="font-size:1.2rem">{{TOP_PV}}</div>
+        <div class="k-sub">{{TOP_PV_FATTURATO}}</div>
+      </div>
+    </div>
+    <div class="slide-num">2 / 5</div>
+  </div>
+
+  <!-- SLIDE 3 — Ranking Punti Vendita -->
+  <div class="slide slide-content">
+    <div class="slide-title">Ranking Punti Vendita</div>
+    <div class="tbl-wrap">
+      <table class="pres-table">
+        <thead>
+          <tr><th>#</th><th>Punto Vendita</th><th>Regione</th><th style="text-align:right">Fatturato</th></tr>
+        </thead>
+        <tbody>
+          {{RANKING_ROWS}}
+        </tbody>
+      </table>
+    </div>
+    <div class="slide-num">3 / 5</div>
+  </div>
+
+  <!-- SLIDE 4 — Trend Mensile -->
+  <div class="slide slide-content">
+    <div class="slide-title">Trend Mensile</div>
+    <div class="tbl-wrap">
+      <table class="pres-table">
+        <thead>
+          <tr><th>Mese</th><th style="text-align:right">Fatturato</th><th style="text-align:right">Var. MoM</th></tr>
+        </thead>
+        <tbody>
+          {{TREND_ROWS}}
+        </tbody>
+      </table>
+    </div>
+    <div class="slide-num">4 / 5</div>
+  </div>
+
+  <!-- SLIDE 5 — Conclusioni -->
+  <div class="slide slide-dark">
+    <div class="slide-title" style="color:#818cf8">Conclusioni e Next Steps</div>
+    <ul class="insight-list">
+      <li>{{INSIGHT_1}}</li>
+      <li>{{INSIGHT_2}}</li>
+      <li>{{INSIGHT_3}}</li>
+    </ul>
+    <div class="slide-num">5 / 5</div>
+  </div>
+
+</div><!-- /slider -->
+
+<script>
+  const N_SLIDES = 5;
+  let current = 0;
+
+  function navSlide(dir) {
+    current = Math.max(0, Math.min(N_SLIDES - 1, current + dir));
+    document.getElementById('slider').style.transform = `translateX(-${current * 100}vw)`;
+    document.getElementById('btn-prev').disabled = current === 0;
+    document.getElementById('btn-next').disabled = current === N_SLIDES - 1;
+  }
+
+  document.addEventListener('keydown', e => {
+    if (e.key === 'ArrowRight' || e.key === 'ArrowDown')  navSlide(+1);
+    if (e.key === 'ArrowLeft'  || e.key === 'ArrowUp')    navSlide(-1);
+  });
+</script>
+</body>
+</html>
